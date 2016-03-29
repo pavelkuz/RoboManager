@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">RoboManager</string>
+    <string name="action_settings">Settings</string>
+    <string name="search_title">Search</string>
+    <string name="action_create">Create</string>
+    <string name="action_open">Open</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+    <string name="http">http://</string>
+    <string name="api_address">/rest/robots</string>
+    <string name="waiting_response">Waiting response time: </string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="waiting_warning">Waiting response time must be more or equivalent 10000</string>
+    <string name="robot_name">Name: %1$s</string>
+    <string name="robot_type">Type: %1$s</string>
+    <string name="robot_year">Year: %1$d</string>
+    <string name="string_name">Name: </string>
+    <string name="string_type">Type: </string>
+    <string name="string_year">Year: </string>
+    <string name="robot_details">Robot details:</string>
+    <string name="create_robot">Create robot:</string>
+</resources>
