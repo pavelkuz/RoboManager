@@ -20,6 +20,7 @@ import kz.kuzovatov.pavel.robomanager.utils.WebServiceCaller;
 
 public class CreateRobotActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "CreateRobotActivity";
+    private WebServiceCaller webServiceCaller = WebServiceCaller.INSTANCE;
     //Url handling components
     private PreferenceManager preferenceManager = PreferenceManager.INSTANCE;
     private String url;
@@ -108,13 +109,12 @@ public class CreateRobotActivity extends AppCompatActivity implements View.OnCli
     }
 
     private class SaveRobot extends AsyncTask<String, Void, String> {
-        WebServiceCaller wsc = new WebServiceCaller();
         String response = null;
 
         @Override
         protected String doInBackground(String... urls) {
             // params comes from the execute() call: params[0] is the url.
-            return wsc.postCallWebService(urls[0], robot, waitingTime);
+            return webServiceCaller.postCallWebService(urls[0], robot, waitingTime);
         }
 
         // onPostExecute displays the results of the AsyncTask.

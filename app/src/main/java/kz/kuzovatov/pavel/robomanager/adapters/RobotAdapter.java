@@ -85,12 +85,12 @@ public class RobotAdapter extends RecyclerView.Adapter<RobotAdapter.ViewHolder> 
                 }
 
                 previousPosition = position;
-
                 notifyItemRangeChanged(0, robotList.size());
+                setData(robotList);
 
                 Intent intent = new Intent();
                 Bundle basket = new Bundle();
-                basket.putInt("selectedId", robotList.get(position).getId());
+                basket.putInt("robotId", robotList.get(position).getId());
                 intent.putExtras(basket);
             }
         });
@@ -108,5 +108,18 @@ public class RobotAdapter extends RecyclerView.Adapter<RobotAdapter.ViewHolder> 
     @Override
     public long getItemId(int position) {
         return robotList.get(position).getId();
+    }
+
+    public List<Robot> getRobotList() {
+        return robotList;
+    }
+
+    public void setRobotList(List<Robot> robotList) {
+        this.robotList = robotList;
+    }
+
+    public void setData(List<Robot> data){
+        this.robotList = data;
+        notifyDataSetChanged();
     }
 }

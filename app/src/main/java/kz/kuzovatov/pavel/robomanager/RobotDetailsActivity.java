@@ -21,6 +21,7 @@ import kz.kuzovatov.pavel.robomanager.utils.WebServiceCaller;
 
 public class RobotDetailsActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "RobotDetailsActivity";
+    private WebServiceCaller webServiceCaller = WebServiceCaller.INSTANCE;
     //Url handling components
     private PreferenceManager preferenceManager = PreferenceManager.INSTANCE;
     private String url;
@@ -113,13 +114,12 @@ public class RobotDetailsActivity extends AppCompatActivity implements View.OnCl
     }
 
     private class DeleteRobot extends AsyncTask<String, Void, String> {
-        WebServiceCaller wsc = new WebServiceCaller();
         String response = "";
 
         @Override
         protected String doInBackground(String... urls) {
             // params comes from the execute() call: params[0] is the url.
-            return wsc.deleteCallWebService(urls[0], waitingTime);
+            return webServiceCaller.deleteCallWebService(urls[0], waitingTime);
         }
 
         // onPostExecute displays the results of the AsyncTask.
@@ -156,13 +156,12 @@ public class RobotDetailsActivity extends AppCompatActivity implements View.OnCl
     }
 
     private class GetRobot extends AsyncTask<String, Void, String> {
-        WebServiceCaller wsc = new WebServiceCaller();
         String response = "";
 
         @Override
         protected String doInBackground(String... urls) {
             // params comes from the execute() call: params[0] is the url.
-            return wsc.callWebService(urls[0], waitingTime);
+            return webServiceCaller.callWebService(urls[0], waitingTime);
         }
 
         // onPostExecute displays the results of the AsyncTask.

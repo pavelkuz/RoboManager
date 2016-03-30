@@ -21,12 +21,15 @@ import java.util.List;
 
 import kz.kuzovatov.pavel.robomanager.adapters.RobotAdapter;
 import kz.kuzovatov.pavel.robomanager.models.Robot;
+import kz.kuzovatov.pavel.robomanager.asynctasks.GetRobotsAsyncTask;
 import kz.kuzovatov.pavel.robomanager.utils.PreferenceManager;
 import kz.kuzovatov.pavel.robomanager.utils.RobotsResponseHandler;
 import kz.kuzovatov.pavel.robomanager.utils.WebServiceCaller;
 
-public class RobotListActivity extends AppCompatActivity {
+public class RobotListActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
     private static final String TAG = "RobotListActivity";
+    private GetRobotsAsyncTask getRobotsAsyncTask;
+    private WebServiceCaller webServiceCaller = WebServiceCaller.INSTANCE;
     //Url handling components
     private PreferenceManager preferenceManager = PreferenceManager.INSTANCE;
     private String url;
@@ -39,9 +42,8 @@ public class RobotListActivity extends AppCompatActivity {
     //Recycler view components
     private RecyclerView robotRecycler;
     private RecyclerView.LayoutManager recyclerLayoutManager;
-    private RecyclerView.Adapter robotsAdapter;
+    private RobotAdapter robotsAdapter;
     private List<Robot> robotList;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +54,6 @@ public class RobotListActivity extends AppCompatActivity {
         robotList = new ArrayList<>();
         searchField = (EditText) findViewById(R.id.search_field);
         initToolbar();
-        initBottomToolbar();
         initRecyclerView();
         getRobots();
     }
@@ -69,75 +70,12 @@ public class RobotListActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.app_name);
         toolbar.setTitleTextColor(Color.WHITE);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()){
-                    case R.id.search:
-                        if(searchField.getText().length()>0) {
-                            getRobotByName(String.valueOf(searchField.getText()));
-                            break;
-                        }
-                        Toast.makeText(RobotListActivity.this, "Nothing was entered for search!", Toast.LENGTH_LONG).show();
-                        break;
-                    default: break;
-                }
-                return false;
-            }
-        });
+        toolbar.setOnMenuItemClickListener(this);
         toolbar.inflateMenu(R.menu.menu_robot_list);
-    }
-
-    public void initBottomToolbar(){
         bottomToolbar = (Toolbar) findViewById(R.id.bottomToolbar);
-        bottomToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Intent intent;
-                switch (item.getItemId()){
-                    case R.id.refresh:
-                        getRobots();
-                        break;
-                    case R.id.create:
-                        intent = new Intent(RobotListActivity.this, CreateRobotActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.open:
-                        for (Robot robot: robotList){
-                            if (robot.isChecked()){
-                                intent = new Intent(RobotListActivity.this, RobotDetailsActivity.class);
-                                intent.putExtra("robot", robot);
-                                startActivity(intent);
-                            }
-                        }
-                        break;
-                    case R.id.edit:
-                        for (Robot robot: robotList){
-                            if (robot.isChecked()){
-                                intent = new Intent(RobotListActivity.this, EditRobotDetailsActivity.class);
-                                intent.putExtra("robot", robot);
-                                startActivity(intent);
-                            }
-                        }
-                        break;
-                    case R.id.delete:
-                        for (Robot robot: robotList){
-                            if (robot.isChecked()){
-                                urlOfSelected = url + robot.getId();
-                                deleteRobot();
-                            }
-                        }
-                        break;
-                    case R.id.settings:
-                        intent = new Intent(RobotListActivity.this, SettingsActivity.class);
-                        startActivity(intent);
-                        break;
-                    default: break;
-                }
-                return false;
-            }
-        });
+        bottomToolbar.setOnMenuItemClickListener(this);
         bottomToolbar.inflateMenu(R.menu.menu_bottom);
+
     }
 
     public void getRobots(){
@@ -148,35 +86,12 @@ public class RobotListActivity extends AppCompatActivity {
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo != null && networkInfo.isConnected()) {
-            new GetRobots().execute(url);
+            getRobotsAsyncTask = GetRobotsAsyncTask.getInstance(this, robotsAdapter);
+            getRobotsAsyncTask.execute(url);
+            robotList = robotsAdapter.getRobotList();
         } else {
             Log.i(TAG, "No network connection available.");
             Toast.makeText(RobotListActivity.this, "No network connection available!", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private class GetRobots extends AsyncTask<String, Void, String> {
-        WebServiceCaller wsc = new WebServiceCaller();
-        String response = "";
-
-        @Override
-        protected String doInBackground(String... urls) {
-            // params comes from the execute() call: params[0] is the url.
-            return wsc.callWebService(urls[0], waitingTime);
-        }
-
-        // onPostExecute displays the results of the AsyncTask.
-        @Override
-        protected void onPostExecute(String result) {
-            if(result==null){
-                Toast.makeText(RobotListActivity.this, "No response from the server!", Toast.LENGTH_LONG).show();
-            } else {
-                response = result;
-                RobotsResponseHandler handler = new RobotsResponseHandler();
-                robotList = handler.getObjectsResponse(response);
-                robotsAdapter = new RobotAdapter(robotList, RobotListActivity.this, robotRecycler);
-                robotRecycler.setAdapter(robotsAdapter);
-            }
         }
     }
 
@@ -195,14 +110,69 @@ public class RobotListActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()){
+            case R.id.refresh:
+                getRobots();
+                break;
+            case R.id.create:
+                intent = new Intent(RobotListActivity.this, CreateRobotActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.open:
+                getRobots();
+                for (Robot robot: robotList){
+                    if (robot.isChecked()){
+                        intent = new Intent(RobotListActivity.this, RobotDetailsActivity.class);
+                        intent.putExtra("robot", robot);
+                        startActivity(intent);
+                    }
+                }
+                break;
+            case R.id.edit:
+                getRobots();
+                for (Robot robot: robotList){
+                    if (robot.isChecked()){
+                        intent = new Intent(RobotListActivity.this, EditRobotDetailsActivity.class);
+                        intent.putExtra("robot", robot);
+                        startActivity(intent);
+                    }
+                }
+                break;
+            case R.id.delete:
+                getRobots();
+                for (Robot robot: robotList){
+                    if (robot.isChecked()){
+                        urlOfSelected = url + robot.getId();
+                        deleteRobot();
+                    }
+                }
+                break;
+            case R.id.settings:
+                intent = new Intent(RobotListActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.search:
+                if(searchField.getText().length()>0) {
+                    getRobotByName(String.valueOf(searchField.getText()));
+                    break;
+                }
+                Toast.makeText(RobotListActivity.this, "Nothing was entered for search!", Toast.LENGTH_LONG).show();
+                break;
+            default: break;
+        }
+        return false;
+    }
+
     private class GetRobotByName extends AsyncTask<String, Void, String> {
-        WebServiceCaller wsc = new WebServiceCaller();
         String response = "";
 
         @Override
         protected String doInBackground(String... urls) {
             // params comes from the execute() call: params[0] is the url.
-            return wsc.callWebService(urls[0], waitingTime);
+            return webServiceCaller.callWebService(urls[0], waitingTime);
         }
 
         // onPostExecute displays the results of the AsyncTask.
@@ -237,13 +207,12 @@ public class RobotListActivity extends AppCompatActivity {
     }
 
     private class DeleteRobot extends AsyncTask<String, Void, String> {
-        WebServiceCaller wsc = new WebServiceCaller();
         String response = "";
 
         @Override
         protected String doInBackground(String... urls) {
             // params comes from the execute() call: params[0] is the url.
-            return wsc.deleteCallWebService(urls[0], waitingTime);
+            return webServiceCaller.deleteCallWebService(urls[0], waitingTime);
         }
 
         // onPostExecute displays the results of the AsyncTask.

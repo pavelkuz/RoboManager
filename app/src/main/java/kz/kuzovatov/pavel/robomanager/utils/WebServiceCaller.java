@@ -17,11 +17,9 @@ import java.net.URL;
 import kz.kuzovatov.pavel.robomanager.models.BaseEntity;
 import kz.kuzovatov.pavel.robomanager.models.Robot;
 
-public class WebServiceCaller<T extends BaseEntity> {
+public enum WebServiceCaller {
+    INSTANCE;
     private static final String TAG = "WebServiceCaller";
-
-    public WebServiceCaller() {
-    }
 
     /**
      * Method that calling WS for get all entities
@@ -91,13 +89,12 @@ public class WebServiceCaller<T extends BaseEntity> {
      * Method that calling WS for update entity
      *
      * @param url url of rest api with entity id
-     * @param t entity that could be update
+     * @param robot entity that could be update
      * @param waitingResponseTime time to wait response from the server, if it ends without result,
      * than messaging error.
      * @return response string
      */
-    public String putCallWebService(String url, T t, int waitingResponseTime){
-        Robot robot = (Robot) t;
+    public String putCallWebService(String url, Robot robot, int waitingResponseTime){
         String response = null;
         JSONObject jsonObject = new JSONObject();
 
@@ -175,13 +172,12 @@ public class WebServiceCaller<T extends BaseEntity> {
      * Method that calling WS for save entity
      *
      * @param url url of rest api
-     * @param t entity that could be saved
+     * @param robot entity that could be saved
      * @param waitingResponseTime time to wait response from the server, if it ends without result,
      * than messaging error.
      * @return response string
      */
-    public String postCallWebService(String url, T t, int waitingResponseTime){
-        Robot robot = (Robot) t;
+    public String postCallWebService(String url, Robot robot, int waitingResponseTime){
         String response = null;
         JSONObject jsonObject = new JSONObject();
 
